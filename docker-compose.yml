@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    container_name: slack-ask-bot-api
+    restart: until-stopped
+    ports:
+      - "7777:5000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      - db
+    env_file:
+      - .env
+    tty: true
+    networks:
+      - slack-ask-bot
+
+  db:
+    build: ./db
+    container_name: slack-ask-bot-db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "7778:3306"
+    volumes:
+      - mysql:/var/lib/mysql/data
+    tty: true
+    networks:
+      - slack-ask-bot
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: slack-ask-bot-phpmyadmin
+    restart: always
+    ports:
+      - "7779:80"
+    env_file:
+      - .env
+    tty: true
+    networks:
+      - slack-ask-bot
+
+volumes:
+  mysql:
+
+  networks:
+    slack-ask-bot:
+      driver: bridge
