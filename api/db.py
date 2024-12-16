@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 import time
 
-from configs.env import DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
+from env import DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
 import datetime
 JST = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
@@ -47,10 +47,6 @@ class Question(Base):
     thread_ts = Column(String)
     tags = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.now(JST))
-
-    __table_args__ = {
-        Index("index_fulltext_tags", tags, mysql_fulltext=True)
-    }
 
 
 class QuestionCreate(BaseModel):

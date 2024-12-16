@@ -1,4 +1,4 @@
-CREATE DATABSE IF NOT EXISTS slack_ask_bot_db;
+CREATE DATABASE IF NOT EXISTS slack_ask_bot_db;
 
 USE slack_ask_bot_db;
 

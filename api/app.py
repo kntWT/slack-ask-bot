@@ -38,7 +38,7 @@ def set_activate_channel(event, say):
         say(f"このチャンネルに対して質問を投稿します！")
 
 
-@app.event("message.im")
+@app.event("message")
 def handle_message_on_dm(event, say, client):
     global channel_id
     global subdomain
@@ -56,13 +56,12 @@ def handle_message_on_dm(event, say, client):
         "tags": ""
     })
     relative_questions = get_question_by_tags(text)
-    message = f"""
-        質問を投稿しました！\n
-        {get_message_url(channel_id, thread_ts)}\n
-        関連する質問:\n
-        {'\n'.join([get_message_url(q['channel_id'], q['thread_ts'])
-                   for q in relative_questions])}
-        """
+    message = ("質問を投稿しました！\n"
+               f"{get_message_url(channel_id, thread_ts)}\n\n"
+               "関連する質問\n"
+               ''.join([get_message_url(q['channel_id'], q['thread_ts'])
+                        for q in relative_questions])
+               )
     say(message)
 
 

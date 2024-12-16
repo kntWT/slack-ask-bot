@@ -2,9 +2,11 @@ version: '3.8'
 
 services:
   api:
-    build: ./api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
     container_name: slack-ask-bot-api
-    restart: until-stopped
+    restart: unless-stopped
     ports:
       - "7777:5000"
     volumes:
@@ -18,7 +20,9 @@ services:
       - slack-ask-bot
 
   db:
-    build: ./db
+    build:
+      context: ./db
+      dockerfile: Dockerfile
     container_name: slack-ask-bot-db
     restart: always
     env_file:
@@ -26,7 +30,7 @@ services:
     ports:
       - "7778:3306"
     volumes:
-      - mysql:/var/lib/mysql/data
+      - mysql:/var/lib/mysql
     tty: true
     networks:
       - slack-ask-bot
@@ -46,6 +50,6 @@ services:
 volumes:
   mysql:
 
-  networks:
-    slack-ask-bot:
-      driver: bridge
+networks:
+  slack-ask-bot:
+    driver: bridge
