@@ -60,6 +60,18 @@ def create_question(question: QuestionCreate):
 RELEVANCE_THRESHOLD = 0.5
 
 
+def map_question_with_relevance(q): return {
+    "id": q[0],
+    "channel_id": q[1],
+    "thread_ts": q[2],
+    "question": q[3],
+    "user_id": q[4],
+    "tags": q[5],
+    "created_at": q[6],
+    "relevance": q[7]
+}
+
+
 def get_question_by_tags(tags: str, limit: int = 5):
     sql = text("""
                SELECT *, MATCH(tags) AGAINST(:tags IN BOOLEAN MODE) as relevance
@@ -69,7 +81,7 @@ def get_question_by_tags(tags: str, limit: int = 5):
                LIMIT :limit
                """)
     result = conn.execute(sql, {"tags": tags, "limit": limit})
-    return result.fetchall()
+    return list(map(map_question_with_relevance, result.fetchall()))
 
 
 def get_question_by_question(question: str, limit: int = 5):
@@ -82,4 +94,4 @@ def get_question_by_question(question: str, limit: int = 5):
                """)
     result = conn.execute(
         sql, {"question": question, "limit": limit, "threshold": RELEVANCE_THRESHOLD})
-    return result.fetchall()
+    return list(map(map_question_with_relevance, result.fetchall()))
