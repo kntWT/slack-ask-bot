@@ -64,13 +64,28 @@ def create_question(question: QuestionCreate, db: Session = get_db()):
     return question
 
 
+RELEVANCE_THRESHOLD = 0.5
+
+
 def get_question_by_tags(tags: str, limit: int = 5, db: Session = get_db()):
     sql = text("""
-               SELECT *, MATCH(tags) AGAINST(:tags IN NATURAL LANGUAGE MODE) as relevance
+               SELECT *, MATCH(tags) AGAINST(:tags IN BOOLEAN MODE WITH QUERY EXPANSION) as relevance
                FROM questions
-               WHERE MATCH(tags) AGAINST(:tags IN NATURAL LANGUAGE MODE)
+               WHERE MATCH(tags) AGAINST(:tags IN BOOLEAN MODE WITH QUERY EXPANSION)
                ORDER BY  DESC
                LIMIT :limit
                """)
     result = db.execute(sql, {"tags": tags, "limit": limit})
+    return result.fetchall()
+
+
+def get_question_by_question(question: str, limit: int = 5, db: Session = get_db()):
+    sql = text("""
+               SELECT *, MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION) as relevance
+               FROM questions
+               WHERE MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
+               ORDER BY  DESC
+               LIMIT :limit
+               """)
+    result = db.execute(sql, {"question": question, "limit": limit})
     return result.fetchall()
