@@ -4,7 +4,7 @@ USE slack_ask_bot_db;
 
 CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    channnel_id VARCHAR(255) NOT NULL,
+    channel_id VARCHAR(255) NOT NULL,
     thread_ts VARCHAR(255) NOT NULL,
     question VARCHAR(255) NOT NULL,
     user_id VARCHAR(255) NOT NULL,
