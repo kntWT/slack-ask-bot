@@ -1,5 +1,6 @@
 from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask
+from waitress import serve
 from app import app
 
 # Flaskサーバーの初期化
@@ -14,4 +15,4 @@ def slack_events():
 
 if __name__ == "__main__":
     # 5000番ポートでリッスン
-    flask_app.run(port=5000)
+    serve(flask_app, host="0.0.0.0", port=5000, threads=6)
