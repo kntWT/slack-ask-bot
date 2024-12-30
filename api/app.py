@@ -46,7 +46,7 @@ def handle_message_on_dm(event, say, client):
         say("質問を投稿するチャンネルが設定されていません。")
         return
     text = event["text"]
-    thread_ts = event.get("thread_ts")
+    thread_ts = event.get("thread_ts") if "thread_ts" in event else event["ts"]
     client.chat_postMessage(channel=channel_id, text=text)
     create_question({
         "channel_id": channel_id,
@@ -56,12 +56,12 @@ def handle_message_on_dm(event, say, client):
         "tags": ""
     })
     relative_questions = get_question_by_tags(text)
+    relative_question_msg = ("関連する質問\n"
+                             ''.join([get_message_url(q['channel_id'], q['thread_ts'])
+                                      for q in relative_questions]))
     message = ("質問を投稿しました！\n"
                f"{get_message_url(channel_id, thread_ts)}\n\n"
-               "関連する質問\n"
-               ''.join([get_message_url(q['channel_id'], q['thread_ts'])
-                        for q in relative_questions])
-               )
+               f"{relative_question_msg}")
     say(message)
 
 
