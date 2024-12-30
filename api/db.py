@@ -62,10 +62,10 @@ RELEVANCE_THRESHOLD = 0.5
 
 def get_question_by_tags(tags: str, limit: int = 5):
     sql = text("""
-               SELECT *, MATCH(tags) AGAINST(:tags IN BOOLEAN MODE WITH QUERY EXPANSION) as relevance
+               SELECT *, MATCH(tags) AGAINST(:tags IN BOOLEAN MODE) as relevance
                FROM questions
-               WHERE MATCH(tags) AGAINST(:tags IN BOOLEAN MODE WITH QUERY EXPANSION)
-               ORDER BY  DESC
+               WHERE MATCH(tags) AGAINST(:tags IN BOOLEAN MODE)
+               ORDER BY relevance DESC
                LIMIT :limit
                """)
     result = conn.execute(sql, {"tags": tags, "limit": limit})
@@ -74,11 +74,12 @@ def get_question_by_tags(tags: str, limit: int = 5):
 
 def get_question_by_question(question: str, limit: int = 5):
     sql = text("""
-               SELECT *, MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION) as relevance
+               SELECT *, MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE) as relevance
                FROM questions
-               WHERE MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION)
-               ORDER BY  DESC
+               WHERE MATCH(question) AGAINST(:question IN NATURAL LANGUAGE MODE) > :threshold
+               ORDER BY relevance DESC
                LIMIT :limit
                """)
-    result = conn.execute(sql, {"question": question, "limit": limit})
+    result = conn.execute(
+        sql, {"question": question, "limit": limit, "threshold": RELEVANCE_THRESHOLD})
     return result.fetchall()
