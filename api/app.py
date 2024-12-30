@@ -2,7 +2,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN
-from db import create_question, get_question_by_tags
+from db import create_question, get_question_by_tags, get_question_by_question
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
@@ -48,14 +48,16 @@ def handle_message_on_dm(event, say, client):
     text = event["text"]
     thread_ts = event.get("thread_ts") if "thread_ts" in event else event["ts"]
     client.chat_postMessage(channel=channel_id, text=text)
+    tags = ",".join(["hoge", "test"])
     create_question({
         "channel_id": channel_id,
         "user_id": event["user"],
         "question": text,
         "thread_ts": thread_ts,
-        "tags": ""
+        "tags": tags
     })
-    relative_questions = get_question_by_tags(text)
+    relative_questions = get_question_by_question(text)
+    # relative_questions = get_question_by_tags(tags)
     relative_question_msg = ("関連する質問\n"
                              ''.join([get_message_url(q['channel_id'], q['thread_ts'])
                                       for q in relative_questions]))
