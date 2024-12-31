@@ -57,15 +57,10 @@ def activate_channel(cid):
 def activate_channel_command(ack, say, command):
     activate_channel(command["channel_id"])
     say(f"このチャンネルに対して質問を投稿します！")
+    ack()
 
 
-@app.event("app_mention")
-def set_activate_channel(event, say):
-    text = event["text"]
-
-
-@app.event("message_posted")
-def handle_message(event, say, client):
+def handle_message__on_thread(event, say, client):
     global channel_id
     global subdomain
     # botが投稿した質問に対しての返信のみを処理
@@ -88,7 +83,6 @@ def handle_message(event, say, client):
     client.chat_postMessage(channel=parent_message["dm_id"], text=message)
 
 
-@ app.event("message")
 def handle_message_on_dm(event, say, client):
     global channel_id
     global subdomain
@@ -130,6 +124,15 @@ def handle_message_on_dm(event, say, client):
         }
     }]
     client.chat_postMessage(channel=dm_id, blocks=blocks, mrkdwn=True)
+
+
+@ app.event("message")
+def handle_message(event, say, client):
+    channel_type = event["channel_type"]
+    if channel_type == "channel" and is_thread_message(event):
+        handle_message__on_thread(event, say, client)
+    elif channel_type == "im":
+        handle_message_on_dm(event, say, client)
 
 
 # Start your app
