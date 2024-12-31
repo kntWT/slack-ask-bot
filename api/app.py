@@ -6,7 +6,8 @@ from db import create_question, get_question_by_thread_ts, get_question_by_tags,
 import re
 
 CHANNEL_ID_FILE = "channel_id.txt"
-QUESTION_ID_REG = re.compile(r"^#(\d+)\s+")
+QUESTION_ID_REG = re.compile(
+    r"^(\s+)?#(\d+)\s+(.+)$", re.MULTILINE | re.DOTALL)
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
@@ -146,7 +147,11 @@ def transfer_answer_to_question(event, say, client, question_id):
         say("質問を投稿するチャンネルが設定されていません。")
         return
 
-    text = event["text"]
+    text_match = QUESTION_ID_REG.match(event["text"])
+    if text_match is None:
+        say("返信のフォーマットが正しくありません。")
+        return
+    text = text_match.group(2)
     dm_id = event["channel"]
     question = get_question_by_id(question_id)
     if question is None:
@@ -161,20 +166,8 @@ def transfer_answer_to_question(event, say, client, question_id):
         return
 
     message = (f"返信を転送しました！(#{question['id']})\n"
-               f"{get_message_url(channel_id, event['ts'], thread_ts)}\n\n")
+               f"{get_message_url(channel_id, posted["ts"], thread_ts)}\n\n")
     client.chat_postMessage(channel=dm_id, text=message, thread_ts=thread_ts)
-
-
-def get_parent_message_from_ts(channel_id, ts):
-    try:
-        response = app.client.conversations_replies(
-            channel=channel_id,
-            ts=ts
-        )
-        return response["messages"][0]
-    except SlackApiError as e:
-        print(f"Error fetching conversation history: {e.response['error']}")
-        return None
 
 
 @ app.event("message")
