@@ -7,7 +7,7 @@ import re
 
 CHANNEL_ID_FILE = "channel_id.txt"
 QUESTION_ID_REG = re.compile(
-    r"^(\s+)?#(\d+)\s+(.+)$", re.MULTILINE | re.DOTALL)
+    r"^\s*#(\d+)\s+(.+)$", re.MULTILINE | re.DOTALL)
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
