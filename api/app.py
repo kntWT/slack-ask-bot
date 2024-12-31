@@ -2,9 +2,11 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_BOT_USER_ID
-from db import create_question, get_question_by_thread_ts, get_question_by_tags, get_question_by_question
+from db import create_question, get_question_by_thread_ts, get_question_by_tags, get_question_by_question, get_question_by_id
+import re
 
 CHANNEL_ID_FILE = "channel_id.txt"
+QUESTION_ID_REG = re.compile(r"^#(\d+)\s+")
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
@@ -60,7 +62,7 @@ def activate_channel_command(ack, say, command):
     ack()
 
 
-def handle_message__on_thread(event, say, client):
+def handle_message_on_thread(event, say, client):
     global channel_id
     global subdomain
     # botが投稿した質問に対しての返信のみを処理
@@ -74,7 +76,7 @@ def handle_message__on_thread(event, say, client):
         say("質問の投稿が見つかりませんでした。")
         return
 
-    message = ("質問に対する返信が来ました！\n"
+    message = (f"質問に対する返信が来ました！(#{parent_message['id']})\n"
                f"```{text}\n\n"
                "質問のURL: " +
                get_message_url(
@@ -84,11 +86,22 @@ def handle_message__on_thread(event, say, client):
 
 
 def handle_message_on_dm(event, say, client):
+    text = event["text"]
+    question_id_match = QUESTION_ID_REG.match(text)
+    if question_id_match:
+        transfer_answer_to_question(
+            event, say, client, int(question_id_match.group(1)))
+    else:
+        transfer_question_to_channel(event, say, client)
+
+
+def transfer_question_to_channel(event, say, client):
     global channel_id
     global subdomain
     if channel_id is None:
         say("質問を投稿するチャンネルが設定されていません。")
         return
+
     text = event["text"]
     posted = client.chat_postMessage(channel=channel_id, text=text)
     dm_id = event["channel"]
@@ -103,7 +116,7 @@ def handle_message_on_dm(event, say, client):
     relative_question_msg = ("関連する質問\n" +
                              '\n'.join([f"- {get_message_url(q['channel_id'], q['thread_ts'])}"
                                        for q in relative_questions])) if len(relative_questions) > 0 else "関連する質問はありません。"
-    create_question({
+    question = create_question({
         "channel_id": channel_id,
         "user_id": event["user"],
         "dm_id": dm_id,
@@ -111,7 +124,7 @@ def handle_message_on_dm(event, say, client):
         "thread_ts": thread_ts,
         "tags": tags
     })
-    message = ("質問を投稿しました！\n"
+    message = (f"質問を投稿しました！(#{question['id']})\n"
                f"{get_message_url(channel_id, thread_ts)}\n\n"
                f"{relative_question_msg}")
 
@@ -126,11 +139,49 @@ def handle_message_on_dm(event, say, client):
     client.chat_postMessage(channel=dm_id, blocks=blocks, mrkdwn=True)
 
 
+def transfer_answer_to_question(event, say, client, question_id):
+    global channel_id
+    global subdomain
+    if channel_id is None:
+        say("質問を投稿するチャンネルが設定されていません。")
+        return
+
+    text = event["text"]
+    dm_id = event["channel"]
+    question = get_question_by_id(question_id)
+    if question is None:
+        say("質問の投稿が見つかりませんでした。")
+        return
+
+    thread_ts = question["thread_ts"]
+    posted = client.chat_postMessage(
+        channel=question["channel_id"], text=text, thread_ts=thread_ts)
+    if not posted["ok"]:
+        say(f"返信の投稿に失敗しました。\n{posted['error']}")
+        return
+
+    message = (f"返信を転送しました！(#{question['id']})\n"
+               f"{get_message_url(channel_id, event['ts'], thread_ts)}\n\n")
+    client.chat_postMessage(channel=dm_id, text=message, thread_ts=thread_ts)
+
+
+def get_parent_message_from_ts(channel_id, ts):
+    try:
+        response = app.client.conversations_replies(
+            channel=channel_id,
+            ts=ts
+        )
+        return response["messages"][0]
+    except SlackApiError as e:
+        print(f"Error fetching conversation history: {e.response['error']}")
+        return None
+
+
 @ app.event("message")
 def handle_message(event, say, client):
     channel_type = event["channel_type"]
     if channel_type == "channel" and is_thread_message(event):
-        handle_message__on_thread(event, say, client)
+        handle_message_on_thread(event, say, client)
     elif channel_type == "im":
         handle_message_on_dm(event, say, client)
 
