@@ -47,12 +47,17 @@ def handle_message_on_dm(event, say, client):
         return
     text = event["text"]
     posted = client.chat_postMessage(channel=channel_id, text=text)
-    thread_ts = posted["ts"]
     if not posted["ok"]:
         say(f"質問の投稿に失敗しました。\n{posted['error']}")
         return
+    thread_ts = posted["ts"]
 
     tags = ",".join(["hoge", "test"])
+    relative_questions = get_question_by_question(text)
+    # relative_questions = get_question_by_tags(tags)
+    relative_question_msg = ("関連する質問\n"
+                             '\n'.join([f"* {get_message_url(q['channel_id'], q['thread_ts'])}"
+                                        for q in relative_questions]))
     create_question({
         "channel_id": channel_id,
         "user_id": event["user"],
@@ -60,11 +65,6 @@ def handle_message_on_dm(event, say, client):
         "thread_ts": thread_ts,
         "tags": tags
     })
-    relative_questions = get_question_by_question(text)
-    # relative_questions = get_question_by_tags(tags)
-    relative_question_msg = ("関連する質問\n"
-                             '\n'.join([get_message_url(q['channel_id'], q['thread_ts'])
-                                        for q in relative_questions]))
     message = ("質問を投稿しました！\n"
                f"{get_message_url(channel_id, thread_ts)}\n\n"
                f"{relative_question_msg}")
