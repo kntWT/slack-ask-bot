@@ -89,7 +89,7 @@ def handle_message_on_thread(event, say, client):
 def handle_message_on_dm(event, say, client):
     text = event["text"]
     question_id_match = QUESTION_ID_REG.match(text)
-    if question_id_match:
+    if question_id_match is not None:
         transfer_answer_to_question(
             event, say, client, int(question_id_match.group(1)))
     else:
