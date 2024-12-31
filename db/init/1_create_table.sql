@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS questions (
     thread_ts VARCHAR(255) NOT NULL,
     question VARCHAR(255) NOT NULL,
     user_id VARCHAR(255) NOT NULL,
+    dm_id VARCHAR(255) NOT NULL,
     tags VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FULLTEXT question_index (question) WITH PARSER ngram,
