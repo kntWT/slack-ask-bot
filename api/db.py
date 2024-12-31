@@ -32,10 +32,10 @@ questions_table = Table(
     'questions', meta,
     Column('id', Integer, primary_key=True),
     Column('channel_id', String(255)),
+    Column('thread_ts', String(255)),
+    Column('question', String(255)),
     Column('user_id', String(255)),
     Column('dm_id', String(255)),
-    Column('question', String(255)),
-    Column('thread_ts', String(255)),
     Column('tags', String(255)),
     Column('created_at', DateTime, default=datetime.datetime.now(JST))
 )
