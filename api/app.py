@@ -33,10 +33,10 @@ subdomain = get_workspace_subdomain()
 
 
 def get_message_url(channel_id, thread_ts, parent_ts=None):
-    url = f"https://{subdomain}.slack.com/archives/{
-        channel_id}/p{thread_ts.replace('.', '')}"
-    param = f"?thread_ts={parent_ts}&cid={
-        channel_id}" if parent_ts is not None else ""
+    ts = thread_ts.replace('.', '')
+    url = f"https://{subdomain}.slack.com/archives/{channel_id}/p{ts}"
+    param = f"?thread_ts={parent_ts}&cid={channel_id}" \
+        if parent_ts is not None else ""
     return url + param
 
 
