@@ -5,6 +5,7 @@ load_dotenv()
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+SLACK_BOT_USER_ID = os.getenv("SLACK_BOT_USER_ID")
 
 DB_HOST = os.getenv("MYSQL_OUTSIDE_HOST")
 DB_USER = os.getenv("MYSQL_USER")

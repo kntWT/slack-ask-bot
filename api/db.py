@@ -75,6 +75,12 @@ def map_question_with_relevance(q): return {
 }
 
 
+def get_question_by_thread_ts(thread_ts: str):
+    result = conn.execute(questions_table.select().where(
+        questions_table.c.thread_ts == thread_ts)).fetchone()
+    return dict(map_question_with_relevance(result))
+
+
 def get_question_by_tags(tags: str, limit: int = 5):
     sql = text("""
                SELECT *, MATCH(tags) AGAINST(:tags IN BOOLEAN MODE) as relevance
