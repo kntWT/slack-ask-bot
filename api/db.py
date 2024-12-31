@@ -33,6 +33,7 @@ questions_table = Table(
     Column('id', Integer, primary_key=True),
     Column('channel_id', String(255)),
     Column('user_id', String(255)),
+    Column('dm_id', String(255)),
     Column('question', String(255)),
     Column('thread_ts', String(255)),
     Column('tags', String(255)),
@@ -44,6 +45,7 @@ meta.create_all(engine)
 class QuestionCreate(BaseModel):
     channel_id: str
     user_id: str
+    dm_id: str
     question: str
     thread_ts: str
     tags: str
@@ -66,9 +68,10 @@ def map_question_with_relevance(q): return {
     "thread_ts": q[2],
     "question": q[3],
     "user_id": q[4],
-    "tags": q[5],
-    "created_at": q[6],
-    "relevance": q[7]
+    "dm_id": q[5],
+    "tags": q[6],
+    "created_at": q[7],
+    "relevance": q[8] if len(q) > 8 else None
 }
 
 
