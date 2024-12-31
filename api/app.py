@@ -2,7 +2,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN
-from db import create_question, get_question_by_tags, get_question_by_question
+from db import create_question, get_question_by_thread_ts, get_question_by_tags, get_question_by_question
 
 CHANNEL_ID_FILE = "channel_id.txt"
 
@@ -52,10 +52,6 @@ def activate_channel_command(ack, say, command):
 @app.event("app_mention")
 def set_activate_channel(event, say):
     text = event["text"]
-    if "activate" in text:
-        global channel_id
-        channel_id = event["channel"]
-        say(f"このチャンネルに対して質問を投稿します！")
 
 
 @app.event("message")
@@ -82,6 +78,7 @@ def handle_message_on_dm(event, say, client):
     create_question({
         "channel_id": channel_id,
         "user_id": event["user"],
+        "dm_id": dm_id,
         "question": text,
         "thread_ts": thread_ts,
         "tags": tags
