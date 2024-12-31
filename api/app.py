@@ -4,9 +4,16 @@ from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN
 from db import create_question, get_question_by_tags, get_question_by_question
 
+CHANNEL_ID_FILE = "channel_id.txt"
+
 # Initializes your app with your bot token and socket mode handler
 app = App(token=SLACK_BOT_TOKEN)
 channel_id = None
+try:
+    with open(CHANNEL_ID_FILE, "r") as f:
+        channel_id = f.read()
+except FileNotFoundError:
+    pass
 
 
 def get_workspace_subdomain():
@@ -27,6 +34,19 @@ subdomain = get_workspace_subdomain()
 
 def get_message_url(channel_id, thread_ts):
     return f"https://{subdomain}.slack.com/archives/{channel_id}/p{thread_ts.replace('.', '')}"
+
+
+def activate_channel(cid):
+    global channel_id
+    channel_id = cid
+    with open(CHANNEL_ID_FILE, "w") as f:
+        f.write(channel_id)
+
+
+@app.command("/activate")
+def activate_channel_command(ack, say, command):
+    activate_channel(command["channel_id"])
+    say(f"このチャンネルに対して質問を投稿します！")
 
 
 @app.event("app_mention")
