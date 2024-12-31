@@ -166,7 +166,7 @@ def transfer_answer_to_question(event, say, client, question_id):
         return
 
     message = (f"返信を転送しました！(#{question['id']})\n"
-               f"{get_message_url(channel_id, posted["ts"], thread_ts)}\n\n")
+               f"{get_message_url(channel_id, posted['ts'], thread_ts)}\n\n")
     client.chat_postMessage(channel=dm_id, text=message, thread_ts=thread_ts)
 
 
