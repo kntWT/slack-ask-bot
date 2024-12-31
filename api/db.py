@@ -56,7 +56,7 @@ def create_question(question: QuestionCreate):
         **question
     ))
     conn.commit()
-    return question
+    return get_question_by_thread_ts(question.thread_ts)
 
 
 RELEVANCE_THRESHOLD = 0.5
