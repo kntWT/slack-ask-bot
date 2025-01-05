@@ -87,6 +87,18 @@ def handle_message_on_thread(event, say, client):
 
 
 def handle_message_on_dm(event, say, client):
+    channel = event["channel"]
+    try:
+        members_res = client.conversations_members(channel=channel)
+    except SlackApiError:
+        return
+    if not members_res["ok"]:
+        return
+    members = members_res["members"]
+    user_id = event["user"]
+    if len(members) != 2 and all(m in [SLACK_BOT_USER_ID, user_id] for m in members):
+        return
+
     text = event["text"]
     question_id_match = QUESTION_ID_REG.match(text)
     if question_id_match is not None:
