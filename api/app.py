@@ -2,6 +2,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_BOT_USER_ID
+from openai import get_tags
 from db import create_question, get_question_by_thread_ts, get_question_by_tags, get_question_by_question, get_question_by_id
 import re
 
@@ -123,9 +124,9 @@ def transfer_question_to_channel(event, say, client):
         return
     thread_ts = posted["ts"]
 
-    tags = ",".join(["hoge", "test"])
-    relative_questions = get_question_by_question(text)
-    # relative_questions = get_question_by_tags(tags)
+    tags = get_tags(text).tags
+    # relative_questions = get_question_by_question(text)
+    relative_questions = get_question_by_tags(tags)
     relative_question_msg = ("関連する質問\n" +
                              '\n'.join([f"- {get_message_url(q['channel_id'], q['thread_ts'])}"
                                        for q in relative_questions])) if len(relative_questions) > 0 else "関連する質問はありません。"
