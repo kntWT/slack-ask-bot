@@ -79,6 +79,7 @@ def search_similar_questions(ack, say, command):
     text = command["text"]
     tags = get_tags(text).tags
     questions = get_question_by_tags(",".join(tags))
+    say("検索: \n" + text + "\n")
     if len(questions) == 0:
         say("関連する質問はありません。")
     else:
