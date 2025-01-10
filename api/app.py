@@ -74,7 +74,7 @@ def deactivate_channel_command(ack, say, command):
     ack()
 
 
-@app.command("/search")
+@app.command("/search-question")
 def search_similar_questions(ack, say, command):
     text = command["text"]
     tags = get_tags(text).tags
