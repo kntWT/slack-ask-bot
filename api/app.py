@@ -74,11 +74,11 @@ def deactivate_channel_command(ack, say, command):
     ack()
 
 
-@app.command("/search")
+@app.command("/search-question")
 def search_similar_questions(ack, say, command):
     text = command["text"]
     tags = get_tags(text).tags
-    questions = get_question_by_tags(tags)
+    questions = get_question_by_tags(",".join(tags))
     if len(questions) == 0:
         say("関連する質問はありません。")
     else:
@@ -151,7 +151,7 @@ def transfer_question_to_channel(event, say, client):
 
     tags = get_tags(text).tags
     # relative_questions = get_question_by_question(text)
-    relative_questions = get_question_by_tags(tags)
+    relative_questions = get_question_by_tags(",".join(tags))
     relative_question_msg = ("関連する質問\n" +
                              '\n'.join([f"- {get_message_url(q['channel_id'], q['thread_ts'])}"
                                        for q in relative_questions])) if len(relative_questions) > 0 else "関連する質問はありません。"
