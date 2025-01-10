@@ -161,7 +161,7 @@ def transfer_question_to_channel(event, say, client):
         "dm_id": dm_id,
         "question": text,
         "thread_ts": thread_ts,
-        "tags": tags
+        "tags": ",".join(tags)
     })
     message = (f"質問を投稿しました！(#{question['id']})\n"
                f"{get_message_url(channel_id, thread_ts)}\n\n"
