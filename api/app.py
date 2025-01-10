@@ -2,7 +2,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk.errors import SlackApiError
 from env import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_BOT_USER_ID
-from openai import get_tags
+from gpt import get_tags
 from db import create_question, get_question_by_thread_ts, get_question_by_tags, get_question_by_question, get_question_by_id
 import re
 
@@ -61,6 +61,31 @@ def activate_channel(cid):
 def activate_channel_command(ack, say, command):
     activate_channel(command["channel_id"])
     say(f"このチャンネルに対して質問を投稿します！")
+    ack()
+
+
+@app.command("/deactivate")
+def deactivate_channel_command(ack, say, command):
+    global channel_id
+    channel_id = None
+    with open(CHANNEL_ID_FILE, "w") as f:
+        f.write("")
+    say(f"このチャンネルに対して質問の投稿を停止しました。")
+    ack()
+
+
+@app.command("/search")
+def search_similar_questions(ack, say, command):
+    text = command["text"]
+    tags = get_tags(text).tags
+    questions = get_question_by_tags(tags)
+    if len(questions) == 0:
+        say("関連する質問はありません。")
+    else:
+        message = ("関連する質問\n" +
+                   '\n'.join([f"- {get_message_url(q['channel_id'], q['thread_ts'])}"
+                              for q in questions]))
+        say(message)
     ack()
 
 
