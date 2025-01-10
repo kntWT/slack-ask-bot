@@ -1,6 +1,7 @@
-from openai import OpenAI
+import openai
 from pydantic import BaseModel
 import os
+from env import OPENAI_API_KEY
 
 prompt = ""
 file_name = "prompt.md"
@@ -14,15 +15,15 @@ class Tags(BaseModel):
     tags: list[str]
 
 
-client = OpenAI()
+openai.api_key = OPENAI_API_KEY
 
 
 def get_tags(question: str) -> Tags:
-    response = client.beta.chat.completions.parse(
+    response = openai.beta.chat.completions.parse(
         model="gpt-4o-2024-08-06",
         messages=[
             {"role": "system", "content": prompt},
-            {"role": question}
+            {"role": "user", "content": question}
         ],
         response_format=Tags,
     )
