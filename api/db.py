@@ -16,7 +16,8 @@ def connect_db(trial: int):
     try:
         engine = create_engine(
             f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8mb4',
-            pool_recycle=3600  # 1時間ごとに再接続)
+            pool_recycle=3600,  # 1時間ごとに再接続)
+            pool_pre_ping=True  # 接続が有効か確認する
         )
         meta = MetaData()
         conn = engine.connect()
@@ -54,11 +55,12 @@ class QuestionCreate(BaseModel):
 
 
 def create_question(question: QuestionCreate):
-    conn.execute(questions_table.insert().values(
-        **question
-    ))
-    conn.commit()
-    return get_question_by_thread_ts(question["thread_ts"])
+    with engine.connect() as conn:
+        conn.execute(questions_table.insert().values(
+            **question
+        ))
+        conn.commit()
+        return get_question_by_thread_ts(question["thread_ts"])
 
 
 RELEVANCE_THRESHOLD = 0.5
@@ -78,15 +80,17 @@ def map_question_with_relevance(q): return {
 
 
 def get_question_by_id(id: int):
-    result = conn.execute(questions_table.select().where(
-        questions_table.c.id == id)).fetchone()
-    return dict(map_question_with_relevance(result))
+    with engine.connect() as conn:
+        result = conn.execute(questions_table.select().where(
+            questions_table.c.id == id)).fetchone()
+        return dict(map_question_with_relevance(result))
 
 
 def get_question_by_thread_ts(thread_ts: str):
-    result = conn.execute(questions_table.select().where(
-        questions_table.c.thread_ts == thread_ts)).fetchone()
-    return dict(map_question_with_relevance(result))
+    with engine.connect() as conn:
+        result = conn.execute(questions_table.select().where(
+            questions_table.c.thread_ts == thread_ts)).fetchone()
+        return dict(map_question_with_relevance(result))
 
 
 def get_question_by_tags(tags: str, limit: int = 5):
@@ -97,8 +101,9 @@ def get_question_by_tags(tags: str, limit: int = 5):
                ORDER BY relevance DESC
                LIMIT :limit
                """)
-    result = conn.execute(sql, {"tags": tags, "limit": limit})
-    return list(map(map_question_with_relevance, result.fetchall()))
+    with engine.connect() as conn:
+        result = conn.execute(sql, {"tags": tags, "limit": limit})
+        return list(map(map_question_with_relevance, result.fetchall()))
 
 
 def get_question_by_question(question: str, limit: int = 5):
@@ -109,6 +114,7 @@ def get_question_by_question(question: str, limit: int = 5):
                ORDER BY relevance DESC
                LIMIT :limit
                """)
-    result = conn.execute(
-        sql, {"question": question, "limit": limit, "threshold": RELEVANCE_THRESHOLD})
-    return list(map(map_question_with_relevance, result.fetchall()))
+    with engine.connect() as conn:
+        result = conn.execute(
+            sql, {"question": question, "limit": limit, "threshold": RELEVANCE_THRESHOLD})
+        return list(map(map_question_with_relevance, result.fetchall()))
