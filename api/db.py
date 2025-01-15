@@ -15,7 +15,9 @@ def connect_db(trial: int):
         return None, None, None
     try:
         engine = create_engine(
-            f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8mb4')
+            f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8mb4',
+            pool_recycle=3600  # 1時間ごとに再接続)
+        )
         meta = MetaData()
         conn = engine.connect()
         return engine, meta, conn
