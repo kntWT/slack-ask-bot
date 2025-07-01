@@ -76,6 +76,8 @@ def deactivate_channel_command(ack, say, command):
 
 @app.command("/search-question")
 def search_similar_questions(ack, say, command):
+    # GPTやdbの問い合わせに時間がかかるため先にack()する（3秒以内に返すため）
+    ack()
     text = command["text"]
     tags = get_tags(text).tags
     questions = get_question_by_tags(",".join(tags))
@@ -87,7 +89,6 @@ def search_similar_questions(ack, say, command):
                    '\n'.join([f"- {get_message_url(q['channel_id'], q['thread_ts'])}"
                               for q in questions]))
         say(message)
-    ack()
 
 
 def handle_message_on_thread(event, say, client):
